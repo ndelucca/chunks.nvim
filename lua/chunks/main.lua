@@ -1,6 +1,9 @@
 local Config = require("chunks.config")
+local Utils = require("chunks.utils")
 
-local M = {}
+local M = {
+    files = {}
+}
 
 -- Reads a file and returns a List of lines.
 --
@@ -23,12 +26,14 @@ end
 
 function M:main(opts)
     local fargs = assert(opts.fargs)
-    local snippet_path = Config.chunks_dir .. "/" .. fargs[1]
-    print(snippet_path)
-    local stat = vim.loop.fs_stat(snippet_path)
-    assert(stat, "The snippet file " .. snippet_path .. " does not exists")
+    local chunkname = fargs[1]
 
-    local snippet_content = assert(self:read_file(snippet_path))
+    self.files = Utils.traverse_dir(Config.chunks_dir)
+
+    local chunkfile = self.files[chunkname]
+    assert(self.files[chunkname], "The snippet file " .. self.files[chunkname] .. " does not exists")
+
+    local snippet_content = assert(self:read_file(chunkfile))
     self:write_chunk_to_buffer(snippet_content)
 end
 
