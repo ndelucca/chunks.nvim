@@ -28,10 +28,15 @@ function M:main(opts)
     local fargs = assert(opts.fargs)
     local chunkname = fargs[1]
 
-    self.files = Utils.traverse_dir(Config.chunks_dir)
-
+    -- TODO: Probably should be a command option rather than a general configuration
+    if Config.filter_lsp then
+        Config:ensure_language_chunks_dir()
+        self.files = Utils.traverse_dir(Config:language_chunks_dir())
+    else
+        self.files = Utils.traverse_dir(Config.chunks_dir)
+    end
     local chunkfile = self.files[chunkname]
-    assert(self.files[chunkname], "The snippet file " .. self.files[chunkname] .. " does not exists")
+    assert(chunkfile, "The snippet file " .. chunkname .. " does not exists")
 
     local snippet_content = assert(self:read_file(chunkfile))
     self:write_chunk_to_buffer(snippet_content)

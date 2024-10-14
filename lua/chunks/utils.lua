@@ -6,7 +6,7 @@ local files = {}
 -- @param basepath string: base directory
 local function traverse_dir(basepath)
     for _, name in ipairs(vim.fn.readdir(basepath)) do
-        local filepath = basepath .. "/" .. name
+        local filepath = vim.fs.joinpath(basepath, "/", name)
         if vim.fn.isdirectory(filepath) ~= 0 then
             traverse_dir(filepath)
         else
