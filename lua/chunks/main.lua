@@ -16,18 +16,8 @@ function M:read_file(filepath)
     return lines
 end
 
--- Write a chunk of lines in the current buffer.
---
---@param text string: Text to be written in the current buffer
-function M:write_chunk_to_buffer(text)
-    local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
-    vim.api.nvim_buf_set_lines(0, row, row, false, text)
-end
-
-function M:main(opts)
-    local fargs = assert(opts.fargs)
-    local chunkname = fargs[1]
-
+-- Reads all snippet files available
+function M:fetch_snippets()
     -- TODO: Probably should be a command option rather than a general configuration
     if Config.filter_lsp then
         Config:ensure_language_chunks_dir()
@@ -35,11 +25,34 @@ function M:main(opts)
     else
         self.files = Utils.traverse_dir(Config.chunks_dir)
     end
+
+    assert(self.files, "No files available")
+
+    return self.files
+end
+
+-- Reads the contents of a chunk file
+--
+-- @param chunkname string: Path to a text file
+function M:fetch_snippet_content(chunkname)
     local chunkfile = self.files[chunkname]
     assert(chunkfile, "The snippet file " .. chunkname .. " does not exists")
 
     local snippet_content = assert(self:read_file(chunkfile))
-    self:write_chunk_to_buffer(snippet_content)
+    return table.concat(snippet_content, "\n")
+end
+
+-- Locates the cursor in insert mode and presents a completion list with all available chunks
+function M:trigger_completions()
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+    local files = self:fetch_snippets()
+    local completion_options = {}
+
+    for name in pairs(files) do
+        table.insert(completion_options, { word = self:fetch_snippet_content(name), abbr = name })
+    end
+
+    vim.fn.complete(col + 1, completion_options)
 end
 
 return M

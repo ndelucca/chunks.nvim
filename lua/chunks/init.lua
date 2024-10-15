@@ -5,11 +5,7 @@ local M = {}
 
 M.setup = function()
     Config:setup()
-    vim.api.nvim_create_user_command('Chunks', function(opts)
-        return Chunks:main(opts)
-    end, {
-        nargs = "+",
-    })
+    vim.keymap.set("i", "<C-s>", function() Chunks:trigger_completions() end, { noremap = true })
 end
 
 return M
